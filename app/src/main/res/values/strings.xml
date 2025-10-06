@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Xano Store Kotlin</string>
+    <string name="product_image">Product Image</string>
+    <string name="vista_previa_de_imagen_seleccionada">Vista previa de imagen seleccionada</string>
+</resources>
