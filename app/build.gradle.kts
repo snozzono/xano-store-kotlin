@@ -16,8 +16,8 @@ android { // Bloque principal de configuración Android
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner" // Runner para tests instrumentados
         // Configuración de endpoints Xano (reemplaza los valores por los tuyos)
-        buildConfigField("String", "XANO_STORE_BASE", "\"https://x8ki-letl-twmt.n7.xano.io/api:3Xncgo9I/\"") // Base URL Store (Xano)
-        buildConfigField("String", "XANO_AUTH_BASE", "\"https://x8ki-letl-twmt.n7.xano.io/api:PDQSRKQT/\"") // Base URL Auth (Xano)
+        buildConfigField("String", "XANO_STORE_BASE", "\"https://x8ki-letl-twmt.n7.xano.io/api:3EYdZ3Ae/\"") // Base URL Store (Xano)
+        buildConfigField("String", "XANO_AUTH_BASE", "\"https://x8ki-letl-twmt.n7.xano.io/api:R4CkUNlW/\"") // Base URL Auth (Xano)
         buildConfigField("int", "XANO_TOKEN_TTL_SEC", "86400") // TTL de token simulado
     }
 
@@ -44,6 +44,8 @@ android { // Bloque principal de configuración Android
 }
 
 dependencies { // Dependencias del módulo
+
+    implementation("com.google.code.gson:gson:2.10.1")
 
     implementation(libs.androidx.core.ktx) // Extensiones Kotlin para Android core
     implementation(libs.androidx.appcompat) // Compatibilidad de componentes UI
