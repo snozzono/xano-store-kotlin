@@ -19,5 +19,8 @@ data class User(
 
     // El campo "created_at" también se puede incluir si lo necesitas
     @SerializedName("created_at")
-    val createdAt: Long
+    val createdAt: Long,
+
+    @SerializedName("Role")
+    val role: String
 )

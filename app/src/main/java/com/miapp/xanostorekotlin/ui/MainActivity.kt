@@ -12,6 +12,8 @@ import com.miapp.xanostorekotlin.api.RetrofitClient // Cliente Retrofit centrali
 import com.miapp.xanostorekotlin.api.TokenManager // Gestor de token/usuario
 import com.miapp.xanostorekotlin.databinding.ActivityMainBinding // ViewBinding del layout activity_main.xml
 import com.miapp.xanostorekotlin.model.LoginRequest // Modelo para enviar email y password
+import com.miapp.xanostorekotlin.ui.admin.HomeAdminActivity
+import com.miapp.xanostorekotlin.ui.user.HomeUserActivity
 import kotlinx.coroutines.Dispatchers // Dispatcher para correr en IO
 import kotlinx.coroutines.launch // Lanzar corrutinas
 import kotlinx.coroutines.withContext // Cambiar contexto dentro de corrutinas
@@ -89,7 +91,8 @@ class MainActivity : AppCompatActivity() { // Activity principal de login
                     tokenManager.saveAuth(
                         token = authToken,
                         userName = userProfile.name,
-                        userEmail = userProfile.email
+                        userEmail = userProfile.email,
+                        userRole = userProfile.role
                     )
 
                     // --- FASE 4: BIENVENIDA Y NAVEGACIÓN ---
@@ -109,7 +112,13 @@ class MainActivity : AppCompatActivity() { // Activity principal de login
     }
 
     private fun goToHome() { // Navegar a la pantalla de Home
-        val intent = Intent(this, HomeActivity::class.java) // Creamos el Intent explícito
+        var intent = Intent(this, MainActivity::class.java) // Creamos el Intent explícito
+
+        when (tokenManager.getUserRole()) {
+            "admin" -> intent = Intent(this, HomeAdminActivity::class.java)
+            "user" -> intent = Intent(this, HomeUserActivity::class.java)
+        }
+
         startActivity(intent) // Lanzamos la nueva Activity
         finish() // Cerramos la Activity actual para no volver con back
     }
