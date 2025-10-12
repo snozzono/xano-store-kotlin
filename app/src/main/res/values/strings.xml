@@ -3,4 +3,26 @@
     <string name="app_name">Xano Store Kotlin</string>
     <string name="product_image">Product Image</string>
     <string name="vista_previa_de_imagen_seleccionada">Vista previa de imagen seleccionada</string>
+    <string name="navigation_drawer_open">Abrir menú de navegación</string>
+    <string name="navigation_drawer_close">Cerrar menú de navegación</string>
+        <!-- Other strings you may have... -->
+
+        <!-- Add the missing strings from the error log -->
+        <string name="logo_de_la_tienda">Logo de la tienda</string>
+        <string name="bienvenido_a_nuestra_tienda">Bienvenido a nuestra tienda</string>
+        <string name="por_favor_inicia_sesi_n_o_reg_strate">Por favor, inicia sesión o regístrate
+        </string>
+        <string name="email">Email</string>
+        <string name="password">Contraseña</string>
+        <string name="registrarse">Registrarse</string>
+        <string name="iniciar_sesi_n">Iniciar Sesión</string>
+    <!-- Your existing strings will be here -->
+
+    <!-- Add the missing strings below -->
+    <string name="copyright_2025_snozz">Copyright © 2025 Snozz</string>
+    <string name="crea_tu_cuenta">Crea tu cuenta</string>
+    <string name="es_r_pido_y_f_cil">Es rápido y fácil</string>
+    <string name="nombre_completo">Nombre completo</string>
+    <string name="crear_cuenta">Crear cuenta</string>
+    <string name="ya_tienes_una_cuenta_inicia_sesi_n">¿Ya tienes una cuenta? Inicia sesión</string>
 </resources>
