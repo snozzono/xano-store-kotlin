@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/teal_200"
     tools:context=".ui.fragments.AddProductFragment">
 
     <LinearLayout
@@ -38,9 +39,9 @@
                 android:id="@+id/etDescription"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:gravity="top"
                 android:inputType="textMultiLine"
-                android:minLines="3"
-                android:gravity="top"/>
+                android:minLines="3" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <!-- ¡AÑADIDO! Campo para el Precio del producto -->

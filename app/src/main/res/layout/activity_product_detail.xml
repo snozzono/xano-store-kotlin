@@ -10,7 +10,8 @@
     <!-- Usamos un ScrollView para que el contenido pueda desplazarse si es muy largo -->
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:background="@color/teal_200">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
@@ -22,9 +23,9 @@
                 android:id="@+id/image_view_pager"
                 android:layout_width="0dp"
                 android:layout_height="300dp"
-                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent" />
+                app:layout_constraintTop_toTopOf="parent" />
 
             <!-- 2. Título del producto -->
             <TextView
@@ -34,9 +35,9 @@
                 android:layout_marginTop="16dp"
                 android:textAppearance="@style/TextAppearance.Material3.HeadlineMedium"
                 android:textStyle="bold"
-                app:layout_constraintTop_toBottomOf="@id/image_view_pager"
-                app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/image_view_pager"
                 tools:text="Nombre del Producto Muy Largo" />
 
             <!-- 3. Precio del producto -->
@@ -56,10 +57,10 @@
                 android:id="@+id/tv_product_stock"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                app:layout_constraintTop_toTopOf="@id/tv_product_price"
                 app:layout_constraintBottom_toBottomOf="@id/tv_product_price"
                 app:layout_constraintEnd_toEndOf="parent"
-                tools:text="Stock: 25"/>
+                app:layout_constraintTop_toTopOf="@id/tv_product_price"
+                tools:text="Stock: 25" />
 
             <!-- 5. Descripción del producto -->
             <TextView
@@ -68,9 +69,9 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
-                app:layout_constraintTop_toBottomOf="@id/tv_product_price"
-                app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tv_product_price"
                 tools:text="Esta es una descripción muy detallada del producto que puede ocupar varias líneas de texto para explicar todas sus características y beneficios." />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
