@@ -1,125 +1,154 @@
-package com.miapp.xanostorekotlin.ui // Paquete donde vive la Activity de login
+package com.miapp.xanostorekotlin.ui
 
+// ... (todas las demás importaciones se mantienen igual)
 import android.content.Context
-import android.content.Intent // Import para navegar a otra Activity
-import android.os.Bundle // Import para ciclo de vida y estado
+import android.content.Intent
+import android.os.Bundle
 import android.util.Log
-import android.view.View // Import para manipular visibilidad de vistas
-import android.widget.Toast // Import para notificaciones cortas
-import androidx.appcompat.app.AppCompatActivity // Activity base compatible
-import androidx.lifecycle.lifecycleScope // Alcance de corrutinas ligado al ciclo de vida
-import com.miapp.xanostorekotlin.api.RetrofitClient // Cliente Retrofit centralizado
-import com.miapp.xanostorekotlin.api.TokenManager // Gestor de token/usuario
-import com.miapp.xanostorekotlin.databinding.ActivityMainBinding // ViewBinding del layout activity_main.xml
-import com.miapp.xanostorekotlin.model.LoginRequest // Modelo para enviar email y password
+import android.view.View
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import com.miapp.xanostorekotlin.api.RetrofitClient
+import com.miapp.xanostorekotlin.api.TokenManager
+import com.miapp.xanostorekotlin.databinding.ActivityMainBinding
+import com.miapp.xanostorekotlin.model.LoginRequest
 import com.miapp.xanostorekotlin.ui.admin.HomeAdminActivity
 import com.miapp.xanostorekotlin.ui.user.HomeUserActivity
-import kotlinx.coroutines.Dispatchers // Dispatcher para correr en IO
-import kotlinx.coroutines.launch // Lanzar corrutinas
-import kotlinx.coroutines.withContext // Cambiar contexto dentro de corrutinas
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import retrofit2.HttpException
 
-/**
- * MainActivity (Login)
- *
- * Explicación:
- * - Muestra un formulario de email y password.
- * - Al presionar el botón, llama al endpoint de login usando corrutinas.
- * - Si el login es exitoso, guarda el token y datos del usuario y navega a HomeActivity.
- * - Se utiliza ViewBinding para acceder a las vistas y lifecycleScope para las corrutinas.
- */
-class MainActivity : AppCompatActivity() { // Activity principal de login
+class MainActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityMainBinding // Referencia a ViewBinding para acceder a vistas
-    private lateinit var tokenManager: TokenManager // Manejador de sesión/token del usuario
+    private lateinit var binding: ActivityMainBinding
+    private lateinit var tokenManager: TokenManager
 
-    override fun onCreate(savedInstanceState: Bundle?) { // Ciclo de vida: creación de la Activity
-        super.onCreate(savedInstanceState) // Llamamos al métodoo base
-        binding = ActivityMainBinding.inflate(layoutInflater) // Inflamos el layout con ViewBinding
-        setContentView(binding.root) // Establecemos el contenido de la Activity
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        tokenManager = TokenManager(this) // Inicializamos TokenManager con contexto
+        tokenManager = TokenManager(this)
 
-        // Si ya hay sesión, vamos directo a Home
-        if (tokenManager.isLoggedIn()) { // Consultamos si hay token guardado
-            goToHome() // Navegamos a Home
-            return // Terminamos onCreate para no mostrar login
+        if (tokenManager.isLoggedIn()) {
+            val role = tokenManager.getUserRole()
+            if (!role.isNullOrBlank()) {
+                goToRoleBasedHome(role)
+                return
+            } else {
+                tokenManager.clear()
+            }
         }
 
-        binding.btnLogin.setOnClickListener { // Click en botón Login
-            val email = binding.etEmail.text?.toString()?.trim().orEmpty() // Obtenemos email
-            val password = binding.etPassword.text?.toString()?.trim().orEmpty() // Obtenemos password
+        binding.btnRegister.setOnClickListener {
+            val intent = Intent(this, RegisterActivity::class.java)
+            startActivity(intent)
+        }
 
-            if (email.isBlank() || password.isBlank()) { // Validación simple
-                Toast.makeText(this, "Completa email y password", Toast.LENGTH_SHORT).show() // Feedback
-                return@setOnClickListener // No seguimos si faltan datos
-            }
+        binding.btnLogin.setOnClickListener {
+            loginUser()
+        }
+    }
 
-            // Mostramos progreso
-            binding.progress.visibility = View.VISIBLE // Indicador visible
-            binding.btnLogin.isEnabled = false // Bloqueamos botón para evitar múltiples clics
+    private fun loginUser() {
+        val email = binding.etEmail.text?.toString()?.trim().orEmpty()
+        val password = binding.etPassword.text?.toString()?.trim().orEmpty()
 
-            // Corrutina para llamar a la API de login
-            lifecycleScope.launch {
-                try {
-                    // --- FASE 1: LOGIN (usando el servicio PÚBLICO) ---
-                    // Llamamos a createAuthService sin el segundo parámetro (o con 'false'),
-                    // para obtener un servicio sin token.
-                    val publicAuthService = RetrofitClient.createAuthService(this@MainActivity)
-                    val loginResponse = withContext(Dispatchers.IO) {
-                        publicAuthService.login(LoginRequest(email = email, password = password))
-                    }
+        if (email.isBlank() || password.isBlank()) {
+            Toast.makeText(this, "Completa email y password", Toast.LENGTH_SHORT).show()
+            return
+        }
 
-                    // --- PASO CLAVE: GUARDADO DEL TOKEN ---
-                    val authToken = loginResponse.authToken
+        setUiEnabled(false)
 
-                    // --- PASO CLAVE: GUARDADO TEMPORAL MANUAL ---
-                    // Guardamos el token en SharedPreferences para que la siguiente llamada lo encuentre.
-                    getSharedPreferences("session", Context.MODE_PRIVATE).edit().apply {
-                        putString("jwt_token", authToken)
-                        apply()
-                    }
+        lifecycleScope.launch {
+            try {
+                // --- ¡FLUJO SIMPLIFICADO Y CORREGIDO! ---
 
-                    // --- FASE 2: OBTENCIÓN DE DATOS (usando el servicio PRIVADO) ---
-                    // Ahora llamamos a createAuthService con 'requiresAuth = true'.
-                    // Esto creará un servicio que SÍ incluye el interceptor con el token.
-                    val privateAuthService = RetrofitClient.createAuthService(this@MainActivity, requiresAuth = true)
-                    val userProfile = withContext(Dispatchers.IO) {
-                        privateAuthService.getMe() // ¡Esta llamada ahora funcionará!
-                    }
-
-                    // --- FASE 3: GUARDADO COMPLETO Y FORMAL ---
-                    tokenManager.saveAuth(
-                        token = authToken,
-                        userName = userProfile.name,
-                        userEmail = userProfile.email,
-                        userRole = userProfile.role
-                    )
-
-                    // --- FASE 4: BIENVENIDA Y NAVEGACIÓN ---
-                    Toast.makeText(this@MainActivity, "¡Bienvenido, ${userProfile.name}!", Toast.LENGTH_SHORT).show()
-                    goToHome() // Navegamos a Home
-
-                } catch (e: Exception) {
-                    Log.e("MainActivity", "Login o GetProfile error", e)
-                    Toast.makeText(this@MainActivity, "Error: ${e.message}", Toast.LENGTH_LONG).show()
-                    tokenManager.clear() // Si falla, limpiamos el token
-                } finally {
-                    binding.progress.visibility = View.GONE // Indicador invisible
-                    binding.btnLogin.isEnabled = true
+                // 1. LOGIN: Obtenemos el token.
+                val publicAuthService = RetrofitClient.createAuthService(applicationContext)
+                val loginResponse = withContext(Dispatchers.IO) {
+                    publicAuthService.login(LoginRequest(email = email, password = password))
                 }
+                val authToken = loginResponse.authToken
+
+                // 2. OBTENCIÓN DEL PERFIL: Usamos el token que acabamos de obtener.
+                // Ya no hay guardado temporal ni se lee de SharedPreferences.
+                val privateAuthService = RetrofitClient.createAuthServiceWithToken(authToken)
+                val meResponse = withContext(Dispatchers.IO) {
+                    privateAuthService.getMe()
+                }
+
+                val userProfile = meResponse
+
+                // 3. VALIDACIÓN DE ROL Y GUARDADO FINAL
+                val userRole = userProfile?.role
+                Log.d("LoginDebug", "Respuesta de /me: ${userProfile}\n" +
+                        "\"PrivateAuthService: ${privateAuthService}\"" +
+                        "meResponse: ${meResponse}")
+
+                if (userProfile == null || userRole.isNullOrBlank()) {
+                    Log.w("LoginDebug", "¡FALLO DE VALIDACIÓN! El perfil o el rol es nulo/vacío. (${userRole})")
+                    tokenManager.clear()
+                    throw Exception("Esta cuenta no tiene rol asignado o no se pudo obtener el perfil")
+                }
+
+                // Ahora sí, guardamos la sesión completa y correcta
+                tokenManager.saveAuth(
+                    token = authToken,
+                    userName = userProfile.name ?: "Usuario",
+                    userEmail = userProfile.email ?: "",
+                    userRole = userRole
+                )
+
+                Toast.makeText(this@MainActivity, "¡Bienvenido, ${tokenManager.getUserName()}!", Toast.LENGTH_SHORT).show()
+                goToRoleBasedHome(userRole)
+
+            } catch (e: Exception) {
+                tokenManager.clear()
+                Log.e("MainActivity", "Error en el proceso de login", e)
+
+                val errorMessage = when (e) {
+                    is HttpException -> when (e.code()) {
+                        401 -> "Email o contraseña incorrectos."
+                        403 -> "No tienes permiso para acceder. Contacta con el administrador."
+                        else -> "Error de red: ${e.code()}"
+                    }
+                    is java.net.UnknownHostException -> "No se pudo conectar al servidor. Revisa tu conexión a internet."
+                    else -> e.message ?: "Ocurrió un error inesperado."
+                }
+                Toast.makeText(this@MainActivity, errorMessage, Toast.LENGTH_LONG).show()
+                setUiEnabled(true)
+
             }
         }
     }
 
-    private fun goToHome() { // Navegar a la pantalla de Home
-        var intent = Intent(this, MainActivity::class.java) // Creamos el Intent explícito
 
-        when (tokenManager.getUserRole()) {
-            "admin" -> intent = Intent(this, HomeAdminActivity::class.java)
-            "user" -> intent = Intent(this, HomeUserActivity::class.java)
+    private fun goToRoleBasedHome(role: String) {
+        val intent = when (role) {
+            "admin" -> Intent(this, HomeAdminActivity::class.java)
+            "user" -> Intent(this, HomeUserActivity::class.java)
+            else -> {
+                Log.e("Navigation", "Intento de navegar con rol inválido: $role")
+                tokenManager.clear()
+                Toast.makeText(this, "Rol de usuario no reconocido. Inicia sesión de nuevo.", Toast.LENGTH_LONG).show()
+                null
+            }
         }
 
-        startActivity(intent) // Lanzamos la nueva Activity
-        finish() // Cerramos la Activity actual para no volver con back
+        if (intent != null) {
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            startActivity(intent)
+            finish()
+        }
+    }
+
+    private fun setUiEnabled(isEnabled: Boolean) {
+        binding.progress.visibility = if (isEnabled) View.GONE else View.VISIBLE
+        binding.btnLogin.isEnabled = isEnabled
+        binding.btnRegister.isEnabled = isEnabled
     }
 }

@@ -1,0 +1,25 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/drawer_profile"
+            android:title="Perfil"
+            android:icon="@drawable/ic_profile" /> <!-- Reemplaza con tu ícono -->
+        <item
+            android:id="@+id/drawer_products"
+            android:title="Productos"
+            android:icon="@drawable/ic_products" /> <!-- Reemplaza con tu ícono -->
+        <item
+            android:id="@+id/drawer_users"
+            android:title="Usuarios"
+            android:icon="@drawable/ic_users" /> <!-- Reemplaza con tu ícono -->
+    </group>
+    <item android:title="Cuenta">
+        <menu>
+            <item
+                android:id="@+id/drawer_logout"
+                android:title="Salir"
+                android:icon="@drawable/ic_logout" /> <!-- Reemplaza con tu ícono -->
+        </menu>
+    </item>
+</menu>
+    
