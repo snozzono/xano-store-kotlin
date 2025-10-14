@@ -25,4 +25,6 @@
     <string name="nombre_completo">Nombre completo</string>
     <string name="crear_cuenta">Crear cuenta</string>
     <string name="ya_tienes_una_cuenta_inicia_sesi_n">¿Ya tienes una cuenta? Inicia sesión</string>
+
+
 </resources>

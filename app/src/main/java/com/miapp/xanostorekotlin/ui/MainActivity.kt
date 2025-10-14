@@ -1,5 +1,6 @@
 package com.miapp.xanostorekotlin.ui
 
+// ... (todas las demás importaciones se mantienen igual)
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -17,6 +18,7 @@ import com.miapp.xanostorekotlin.ui.user.HomeUserActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import retrofit2.HttpException
 
 class MainActivity : AppCompatActivity() {
 
@@ -30,16 +32,12 @@ class MainActivity : AppCompatActivity() {
 
         tokenManager = TokenManager(this)
 
-        // Si ya hay sesión, intenta navegar directamente
         if (tokenManager.isLoggedIn()) {
             val role = tokenManager.getUserRole()
-            // Validamos que el rol guardado sea válido antes de navegar
             if (!role.isNullOrBlank()) {
                 goToRoleBasedHome(role)
-                // Usamos return para evitar que se ejecute el resto del onCreate
                 return
             } else {
-                // Si el rol guardado es inválido, se limpia la sesión
                 tokenManager.clear()
             }
         }
@@ -63,40 +61,41 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        binding.progress.visibility = View.VISIBLE
-        binding.btnLogin.isEnabled = false
-        binding.btnRegister.isEnabled = false
+        setUiEnabled(false)
 
         lifecycleScope.launch {
             try {
-                val appContext = applicationContext
-                val publicAuthService = RetrofitClient.createAuthService(appContext)
+                // --- ¡FLUJO SIMPLIFICADO Y CORREGIDO! ---
 
-                // 1. LOGIN
+                // 1. LOGIN: Obtenemos el token.
+                val publicAuthService = RetrofitClient.createAuthService(applicationContext)
                 val loginResponse = withContext(Dispatchers.IO) {
                     publicAuthService.login(LoginRequest(email = email, password = password))
                 }
                 val authToken = loginResponse.authToken
 
-                // 2. GUARDADO TEMPORAL
-                val prefs = appContext.getSharedPreferences("session", Context.MODE_PRIVATE)
-                withContext(Dispatchers.IO) {
-                    prefs.edit().putString("jwt_token", authToken).commit()
-                }
-
-                // 3. OBTENCIÓN DEL PERFIL
-                val privateAuthService = RetrofitClient.createAuthService(appContext, requiresAuth = true)
-                val userProfile = withContext(Dispatchers.IO) {
+                // 2. OBTENCIÓN DEL PERFIL: Usamos el token que acabamos de obtener.
+                // Ya no hay guardado temporal ni se lee de SharedPreferences.
+                val privateAuthService = RetrofitClient.createAuthServiceWithToken(authToken)
+                val meResponse = withContext(Dispatchers.IO) {
                     privateAuthService.getMe()
                 }
 
-                // 4. VALIDACIÓN DE ROL, GUARDADO FINAL Y NAVEGACIÓN
+                val userProfile = meResponse
+
+                // 3. VALIDACIÓN DE ROL Y GUARDADO FINAL
                 val userRole = userProfile?.role
-                if (userRole.isNullOrBlank()) {
+                Log.d("LoginDebug", "Respuesta de /me: ${userProfile}\n" +
+                        "\"PrivateAuthService: ${privateAuthService}\"" +
+                        "meResponse: ${meResponse}")
+
+                if (userProfile == null || userRole.isNullOrBlank()) {
+                    Log.w("LoginDebug", "¡FALLO DE VALIDACIÓN! El perfil o el rol es nulo/vacío. (${userRole})")
                     tokenManager.clear()
-                    throw Exception("Esta cuenta no tiene rol")
+                    throw Exception("Esta cuenta no tiene rol asignado o no se pudo obtener el perfil")
                 }
 
+                // Ahora sí, guardamos la sesión completa y correcta
                 tokenManager.saveAuth(
                     token = authToken,
                     userName = userProfile.name ?: "Usuario",
@@ -110,31 +109,32 @@ class MainActivity : AppCompatActivity() {
             } catch (e: Exception) {
                 tokenManager.clear()
                 Log.e("MainActivity", "Error en el proceso de login", e)
-                val errorMessage = if (e.message?.contains("HTTP 401") == true) {
-                    "Email o contraseña incorrectos."
-                } else {
-                    e.message ?: "Ocurrió un error inesperado."
+
+                val errorMessage = when (e) {
+                    is HttpException -> when (e.code()) {
+                        401 -> "Email o contraseña incorrectos."
+                        403 -> "No tienes permiso para acceder. Contacta con el administrador."
+                        else -> "Error de red: ${e.code()}"
+                    }
+                    is java.net.UnknownHostException -> "No se pudo conectar al servidor. Revisa tu conexión a internet."
+                    else -> e.message ?: "Ocurrió un error inesperado."
                 }
                 Toast.makeText(this@MainActivity, errorMessage, Toast.LENGTH_LONG).show()
+                setUiEnabled(true)
 
-            } finally {
-                binding.progress.visibility = View.GONE
-                binding.btnLogin.isEnabled = true
-                binding.btnRegister.isEnabled = true
             }
         }
     }
+
 
     private fun goToRoleBasedHome(role: String) {
         val intent = when (role) {
             "admin" -> Intent(this, HomeAdminActivity::class.java)
             "user" -> Intent(this, HomeUserActivity::class.java)
             else -> {
-                // Este caso no debería ocurrir por la validación previa,
-                // pero es una salvaguarda.
                 Log.e("Navigation", "Intento de navegar con rol inválido: $role")
                 tokenManager.clear()
-                Toast.makeText(this, "Rol de usuario no reconocido.", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, "Rol de usuario no reconocido. Inicia sesión de nuevo.", Toast.LENGTH_LONG).show()
                 null
             }
         }
@@ -144,5 +144,11 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
             finish()
         }
+    }
+
+    private fun setUiEnabled(isEnabled: Boolean) {
+        binding.progress.visibility = if (isEnabled) View.GONE else View.VISIBLE
+        binding.btnLogin.isEnabled = isEnabled
+        binding.btnRegister.isEnabled = isEnabled
     }
 }

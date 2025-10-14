@@ -1,11 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-  Layout principal para HomeAdminActivity usando un DrawerLayout.
-  - Incluye una Toolbar para el título y el ícono del menú.
-  - Un FrameLayout para cargar los fragmentos.
-  - Un BottomNavigationView para la navegación principal.
-  - Un NavigationView para el menú lateral (sidebar).
--->
 <androidx.drawerlayout.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -31,24 +24,29 @@
                 style="@style/Widget.MaterialComponents.Toolbar.Primary"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
-                app:title="Perfil"
-                app:navigationIcon="@drawable/ic_menu" />
+                app:navigationIcon="@drawable/ic_menu"
+                app:title="Productos" />
 
         </com.google.android.material.appbar.AppBarLayout>
 
-        <!-- Contenedor donde se cargarán los fragmentos -->
-        <FrameLayout
+        <!-- ===================== CAMBIO IMPORTANTE AQUÍ ===================== -->
+        <!-- Contenedor de fragmentos para el Navigation Component -->
+        <androidx.fragment.app.FragmentContainerView
             android:id="@+id/fragment_container_admin"
+            android:name="androidx.navigation.fragment.NavHostFragment"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1" />
+            android:layout_weight="1"
+            app:defaultNavHost="true"
+            app:navGraph="@navigation/admin_nav_graph" />
+        <!-- ================================================================= -->
 
         <!-- Navegación inferior con dos opciones -->
         <com.google.android.material.bottomnavigation.BottomNavigationView
             android:id="@+id/bottomNavAdmin"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:menu="@menu/bottom_nav_admin_menu" /> <!-- Menú específico para admin -->
+            app:menu="@menu/bottom_nav_admin_menu" />
 
     </LinearLayout>
 
@@ -60,7 +58,5 @@
         android:layout_gravity="start"
         app:headerLayout="@layout/nav_header"
         app:menu="@menu/drawer_admin_menu" />
-     <!-- Opcional: Cabecera para el sidebar -->
- <!-- Menú de opciones del sidebar -->
 
 </androidx.drawerlayout.widget.DrawerLayout>

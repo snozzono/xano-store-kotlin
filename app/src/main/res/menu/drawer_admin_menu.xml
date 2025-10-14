@@ -1,4 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <group android:checkableBehavior="single">
+        <!-- Opción para ver el perfil del administrador -->
+        <item
+            android:id="@+id/drawer_profile"
+            android:icon="@drawable/ic_profile"
+            android:title="Mi Perfil" />
+
+        <!-- Opción para la configuración de la app -->
+        <item
+            android:id="@+id/drawer_settings"
+            android:icon="@drawable/ic_settings"
+            android:title="Configuración" />
+    </group>
+
+    <item android:title="Cuenta">
+        <menu>
+            <!-- Opción para cerrar sesión -->
+            <item
+                android:id="@+id/drawer_logout"
+                android:icon="@drawable/ic_logout"
+                android:title="Cerrar Sesión" />
+        </menu>
+    </item>
+    <!-- res/menu/drawer_admin_menu.xml -->
 </menu>

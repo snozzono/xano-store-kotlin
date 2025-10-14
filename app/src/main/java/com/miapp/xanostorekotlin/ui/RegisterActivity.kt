@@ -1,6 +1,5 @@
 package com.miapp.xanostorekotlin.ui
 
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -16,7 +15,6 @@ import com.miapp.xanostorekotlin.databinding.ActivityRegisterBinding
 import com.miapp.xanostorekotlin.model.ApiError
 import com.miapp.xanostorekotlin.model.AuthResponse
 import com.miapp.xanostorekotlin.model.RegisterRequest
-import com.miapp.xanostorekotlin.ui.admin.HomeAdminActivity
 import com.miapp.xanostorekotlin.ui.user.HomeUserActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -86,36 +84,19 @@ class RegisterActivity : AppCompatActivity() {
                 }
                 val authToken = registerResponse.authToken
 
-                // 2. GUARDADO TEMPORAL PARA OBTENER EL PERFIL
-                val prefs = appContext.getSharedPreferences("session", Context.MODE_PRIVATE)
-                withContext(Dispatchers.IO) {
-                    prefs.edit().putString("jwt_token", authToken).commit()
-                }
-
-                // 3. OBTENCIÓN DEL PERFIL (PARA SABER EL ROL)
-                val authServicePrivate = RetrofitClient.createAuthService(appContext, requiresAuth = true)
-                val userProfile = withContext(Dispatchers.IO) {
-                    authServicePrivate.getMe()
-                }
-
-                // 4. GUARDADO FINAL Y NAVEGACIÓN
-                val userRole = userProfile?.role
-                if (userRole.isNullOrBlank()) {
-                    tokenManager.clear() // Limpiar sesión si no hay rol
-                    throw Exception("Esta cuenta no tiene rol")
-                }
-
+                // 2. GUARDADO DIRECTO CON ROL "user"
+                // Ya no necesitamos obtener el perfil, asignamos el rol directamente.
                 tokenManager.saveAuth(
                     token = authToken,
-                    userName = userProfile.name ?: name,
-                    userEmail = userProfile.email ?: email,
-                    userRole = userRole
+                    userName = name,
+                    userEmail = email,
+                    userRole = "user" // Asignamos "user" por defecto a todos los registros
                 )
 
-                Toast.makeText(this@RegisterActivity, "¡Registro exitoso! Bienvenido, ${tokenManager.getUserName()}", Toast.LENGTH_LONG).show()
+                Toast.makeText(this@RegisterActivity, "¡Registro exitoso! Bienvenido, $name", Toast.LENGTH_LONG).show()
 
-                // Decidimos a dónde navegar según el rol obtenido
-                goToRoleBasedHome(userRole)
+                // 3. NAVEGACIÓN DIRECTA A LA PANTALLA DE USUARIO
+                goToUserHome()
 
             } catch (e: Exception) {
                 tokenManager.clear() // Limpiar cualquier dato de sesión si hay error
@@ -141,17 +122,13 @@ class RegisterActivity : AppCompatActivity() {
         }
     }
 
-    private fun goToRoleBasedHome(role: String) {
-        val intent = when (role) {
-            "admin" -> Intent(this, HomeAdminActivity::class.java)
-            "user" -> Intent(this, HomeUserActivity::class.java)
-            else -> null // No debería ocurrir gracias a la validación previa
-        }
-
-        if (intent != null) {
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            startActivity(intent)
-            finish()
-        }
+    /**
+     * Navega directamente a la pantalla de usuario y limpia el historial.
+     */
+    private fun goToUserHome() {
+        val intent = Intent(this, HomeUserActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(intent)
+        finish()
     }
 }
