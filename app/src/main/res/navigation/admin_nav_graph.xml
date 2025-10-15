@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/admin_nav_graph"
+    app:startDestination="@id/nav_products">
+
+    <!-- Products Fragment (List of products) -->
+    <!-- This is the starting screen of the admin section -->
+    <fragment
+        android:id="@+id/nav_products"
+        android:name="com.miapp.xanostorekotlin.ui.fragments.ProductsFragment"
+        android:label="Productos"
+        tools:layout="@layout/fragment_products">
+        <!-- Action to navigate from the product list to the "Add Product" screen -->
+        <action
+            android:id="@+id/action_productsFragment_to_addProductFragment"
+            app:destination="@id/nav_add_product"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+    </fragment>
+
+    <!-- Users Fragment (List of users) -->
+    <fragment
+        android:id="@+id/nav_users"
+        android:name="com.miapp.xanostorekotlin.ui.fragments.UsersFragment"
+        android:label="Usuarios"
+        tools:layout="@layout/fragment_users" />
+
+    <!-- Add Product Fragment -->
+    <fragment
+        android:id="@+id/nav_add_product"
+        android:name="com.miapp.xanostorekotlin.ui.fragments.AddProductFragment"
+        android:label="Añadir Producto"
+        tools:layout="@layout/fragment_add_product" />
+
+    <!-- Profile Fragment (From the side drawer) -->
+    <fragment
+        android:id="@+id/nav_profile"
+        android:name="com.miapp.xanostorekotlin.ui.fragments.ProfileFragment"
+        android:label="Mi Perfil"
+        tools:layout="@layout/fragment_profile" />
+
+</navigation>

@@ -1,53 +1,157 @@
-package com.miapp.xanostorekotlin.ui.admin // Paquete de la Activity principal de la app
+package com.miapp.xanostorekotlin.ui.admin
 
-import android.os.Bundle // Import para ciclo de vida de Activity y estado
-import androidx.appcompat.app.AppCompatActivity // Import de la Activity base con compatibilidad
-import androidx.fragment.app.Fragment // Import de la clase Fragment (para transacciones)
+import android.content.Intent
+import android.os.Bundle
+import android.view.MenuItem
+import androidx.activity.OnBackPressedCallback
+import androidx.appcompat.app.ActionBarDrawerToggle
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.GravityCompat
+import androidx.navigation.NavController
+import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.ui.AppBarConfiguration
+import androidx.navigation.ui.navigateUp
+import androidx.navigation.ui.setupActionBarWithNavController
+import androidx.navigation.ui.setupWithNavController
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.miapp.xanostorekotlin.R
-import com.miapp.xanostorekotlin.api.TokenManager // Import de nuestra clase para gestionar token/usuario
-import com.miapp.xanostorekotlin.databinding.ActivityHomeBinding // Import del ViewBinding del layout activity_home.xml
-import com.miapp.xanostorekotlin.ui.fragments.AddProductFragment // Import del fragmento para agregar productos
-import com.miapp.xanostorekotlin.ui.fragments.ProductsFragment // Import del fragmento que lista productos
-import com.miapp.xanostorekotlin.ui.fragments.ProfileFragment // Import del fragmento de perfil
+import com.miapp.xanostorekotlin.api.TokenManager
+import com.miapp.xanostorekotlin.databinding.ActivityHomeAdminBinding
+import com.miapp.xanostorekotlin.ui.MainActivity
 
-/**
- * HomeActivity
- *
- * Explicación:
- * - Muestra un saludo con el nombre del usuario logeado.
- * - Contiene un BottomNavigationView para navegar entre 3 fragments:
- *   Perfil, Productos y Agregar Producto.
- * - No usamos Navigation Component para mantenerlo sencillo; hacemos transacciones manuales.
- */
-class HomeAdminActivity : AppCompatActivity() { // Declaramos la Activity Home, que gestiona los fragments
+class HomeAdminActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityHomeBinding // Referencia al ViewBinding para acceder a vistas
-    private lateinit var tokenManager: TokenManager // Manejador de token y datos de usuario
+    private lateinit var binding: ActivityHomeAdminBinding
+    private lateinit var toggle: ActionBarDrawerToggle
+    private lateinit var tokenManager: TokenManager
+    private lateinit var navController: NavController
+    private lateinit var appBarConfiguration: AppBarConfiguration
 
-    override fun onCreate(savedInstanceState: Bundle?) { // Métodoo de ciclo de vida: se llama al crear la Activity
-        super.onCreate(savedInstanceState) // Llamamos a la implementación base
-        binding = ActivityHomeBinding.inflate(layoutInflater) // Inflamos el layout a través de ViewBinding
-        setContentView(binding.root) // Establecemos la vista raíz del binding como contenido de la Activity
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        binding = ActivityHomeAdminBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        tokenManager = TokenManager(this) // Inicializamos el TokenManager con el contexto de la Activity
-        binding.tvWelcome.text = "Bienvenido ${tokenManager.getUserName()}" // Mostramos saludo con el nombre del usuario
+        tokenManager = TokenManager(this)
 
-        // Cargamos inicialmente el fragmento de Productos
-        replaceFragment(ProductsFragment()) // Reemplazamos el contenedor por el fragmento de productos
+        // 1. Setup NavController
+        // The ID 'fragment_container_admin' must match the ID of your NavHostFragment in the XML layout.
+        val navHostFragment = supportFragmentManager
+            .findFragmentById(R.id.fragment_container_admin) as NavHostFragment
+        navController = navHostFragment.navController
 
-        binding.bottomNav.setOnItemSelectedListener { item -> // Listener para navegación inferior
-            when (item.itemId) { // Decidimos qué fragment mostrar según el ítem
-                R.id.nav_profile -> replaceFragment(ProfileFragment()) // Ir al perfil
-                R.id.nav_products -> replaceFragment(ProductsFragment()) // Ir a productos
-                R.id.nav_add -> replaceFragment(AddProductFragment()) // Ir a agregar producto
+        // 2. Setup Action Bar (TopAppBar)
+        setSupportActionBar(binding.topAppBarAdmin)
+        appBarConfiguration = AppBarConfiguration(
+            setOf(R.id.nav_products, R.id.nav_users), // Top-level destinations
+            binding.drawerLayoutAdmin
+        )
+        setupActionBarWithNavController(navController, appBarConfiguration)
+
+        // 3. Setup DrawerLayout and Navigation
+        setupDrawer()
+        setupNavigation()
+        handleBackButton()
+    }
+
+    /**
+     * Configura el ActionBarDrawerToggle para manejar la apertura y cierre del menú lateral.
+     */
+    private fun setupDrawer() {
+        toggle = ActionBarDrawerToggle(
+            this,
+            binding.drawerLayoutAdmin,
+            R.string.navigation_drawer_open,
+            R.string.navigation_drawer_close
+        )
+        binding.drawerLayoutAdmin.addDrawerListener(toggle)
+        toggle.syncState()
+    }
+
+    /**
+     * Configura los listeners para la navegación lateral (NavigationView) y la inferior (BottomNavigationView)
+     * para que trabajen con el NavController.
+     */
+    private fun setupNavigation() {
+        // Conecta el BottomNavigationView con el NavController
+        binding.bottomNavAdmin.setupWithNavController(navController)
+
+        // Listener para el menú lateral (drawer)
+        binding.navigationViewAdmin.setNavigationItemSelectedListener { menuItem ->
+            when (menuItem.itemId) {
+                // Navega usando el NavController
+                R.id.drawer_profile -> navController.navigate(R.id.nav_profile)
+                R.id.drawer_settings -> {
+                    // TODO: Implementar navegación a SettingsFragment
+                    // navController.navigate(R.id.nav_settings)
+                }
+                R.id.drawer_logout -> showLogoutDialog()
             }
-            true // Devolvemos true para indicar que el evento fue manejado
+            binding.drawerLayoutAdmin.closeDrawer(GravityCompat.START)
+            true
         }
     }
 
-    private fun replaceFragment(fragment: Fragment) { // Función auxiliar para reemplazar el fragment actual
-        supportFragmentManager.beginTransaction() // Iniciamos una transacción de fragmentos
-            .replace(binding.fragmentContainer.id, fragment) // Reemplazamos el contenedor con el fragmento dado
-            .commit() // Confirmamos la transacción
+    /**
+     * Esta función ahora puede ser llamada desde cualquier fragmento alojado en esta actividad.
+     * @param destinationId El ID del destino en tu grafo de navegación (e.g., R.id.nav_products).
+     */
+    fun navigateTo(destinationId: Int) {
+        navController.navigate(destinationId)
+    }
+
+    /**
+     * Muestra un diálogo de confirmación para cerrar la sesión.
+     */
+    private fun showLogoutDialog() {
+        MaterialAlertDialogBuilder(this)
+            .setTitle("Confirmar Cierre de Sesión")
+            .setMessage("¿Estás seguro de que deseas cerrar sesión?")
+            .setNegativeButton("Cancelar", null)
+            .setPositiveButton("Sí, Salir") { _, _ ->
+                tokenManager.clear()
+                val intent = Intent(this, MainActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                }
+                startActivity(intent)
+                finish()
+            }
+            .show()
+    }
+
+    /**
+     * Controla el comportamiento del botón "Atrás" del sistema.
+     */
+    private fun handleBackButton() {
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (binding.drawerLayoutAdmin.isDrawerOpen(GravityCompat.START)) {
+                    binding.drawerLayoutAdmin.closeDrawer(GravityCompat.START)
+                } else {
+                    // Dejar que el NavController maneje el botón "Atrás"
+                    if (!navController.navigateUp()) {
+                        // Si no hay más en la pila de atrás, cierra la app (o haz la acción por defecto)
+                        if (isEnabled) {
+                            isEnabled = false
+                            onBackPressedDispatcher.onBackPressed()
+                            isEnabled = true
+                        }
+                    }
+                }
+            }
+        })
+    }
+
+    // Permite que el ActionBarDrawerToggle maneje los eventos de clic en el ícono de menú (hamburguesa).
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (toggle.onOptionsItemSelected(item)) {
+            return true
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
+    // Esencial para que el botón "Up" (flecha atrás) en el AppBar funcione con el NavController.
+    override fun onSupportNavigateUp(): Boolean {
+        return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
     }
 }

@@ -47,6 +47,10 @@ dependencies { // Dependencias del módulo
 
     implementation("com.google.code.gson:gson:2.10.1")
 
+    // Kotlin
+    implementation("androidx.navigation:navigation-fragment-ktx:2.7.7")
+    implementation("androidx.navigation:navigation-ui-ktx:2.7.7")
+
     implementation(libs.androidx.core.ktx) // Extensiones Kotlin para Android core
     implementation(libs.androidx.appcompat) // Compatibilidad de componentes UI
     implementation(libs.material) // Componentes Material Design

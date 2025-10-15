@@ -13,4 +13,8 @@
         android:id="@+id/nav_add"
         android:title="Agregar"
         android:icon="@android:drawable/ic_input_add" />
+     <item
+        android:id="@+id/nav_users"
+        android:title="Usuarios"
+        android:icon="@drawable/ic_users" /> <!-- Reemplaza con tu ícono -->
 </menu>
