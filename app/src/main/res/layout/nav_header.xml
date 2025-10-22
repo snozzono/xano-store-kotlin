@@ -8,29 +8,23 @@
     android:padding="16dp"
     android:theme="@style/ThemeOverlay.AppCompat.Dark">
 
-    <!-- Imagen de perfil o ícono de la app -->
     <ImageView
-        android:id="@+id/header_image"
-        android:layout_width="64dp"
-        android:layout_height="64dp"
-        android:src="@mipmap/ic_launcher_round" /> <!-- Puedes cambiarlo por una imagen de perfil -->
-
-    <!-- Nombre del administrador -->
-    <TextView
-        android:id="@+id/header_user_name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="Nombre del Admin"
-        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-        android:textStyle="bold"/>
+        android:src="@drawable/ic_person" />
 
-    <!-- Correo del administrador -->
     <TextView
-        android:id="@+id/header_user_email"
+        android:id="@+id/nav_header_user_name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="admin@email.com" />
-    <!-- res/layout/nav_header.xml -->
+        android:paddingTop="8dp"
+        android:text="Nombre de Usuario"
+        android:textAppearance="@style/TextAppearance.AppCompat.Body1" />
+
+    <TextView
+        android:id="@+id/nav_header_user_email"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="usuario@email.com" />
 
 </LinearLayout>

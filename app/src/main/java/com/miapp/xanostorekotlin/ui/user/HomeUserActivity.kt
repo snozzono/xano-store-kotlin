@@ -1,53 +1,100 @@
-package com.miapp.xanostorekotlin.ui.user // Paquete de la Activity principal de la app
+package com.miapp.xanostorekotlin.ui.user
 
-import android.os.Bundle // Import para ciclo de vida de Activity y estado
-import androidx.appcompat.app.AppCompatActivity // Import de la Activity base con compatibilidad
-import androidx.fragment.app.Fragment // Import de la clase Fragment (para transacciones)
+import android.content.Intent
+import android.os.Bundle
+import android.view.MenuItem
+import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.GravityCompat
+import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.ui.AppBarConfiguration
+import androidx.navigation.ui.navigateUp
+import androidx.navigation.ui.setupActionBarWithNavController
+import androidx.navigation.ui.setupWithNavController
+import com.google.android.material.navigation.NavigationView
 import com.miapp.xanostorekotlin.R
-import com.miapp.xanostorekotlin.api.TokenManager // Import de nuestra clase para gestionar token/usuario
-import com.miapp.xanostorekotlin.databinding.ActivityHomeBinding // Import del ViewBinding del layout activity_home.xml
-import com.miapp.xanostorekotlin.ui.fragments.AddProductFragment // Import del fragmento para agregar productos
-import com.miapp.xanostorekotlin.ui.fragments.ProductsFragment // Import del fragmento que lista productos
-import com.miapp.xanostorekotlin.ui.fragments.ProfileFragment // Import del fragmento de perfil
+import com.miapp.xanostorekotlin.api.auth.TokenManager
+import com.miapp.xanostorekotlin.databinding.ActivityHomeUserBinding
+import com.miapp.xanostorekotlin.ui.auth.MainActivity
 
-/**
- * HomeActivity
- *
- * Explicación:
- * - Muestra un saludo con el nombre del usuario logeado.
- * - Contiene un BottomNavigationView para navegar entre 3 fragments:
- *   Perfil, Productos y Agregar Producto.
- * - No usamos Navigation Component para mantenerlo sencillo; hacemos transacciones manuales.
- */
-class HomeUserActivity : AppCompatActivity() { // Declaramos la Activity Home, que gestiona los fragments
+class HomeUserActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
 
-    private lateinit var binding: ActivityHomeBinding // Referencia al ViewBinding para acceder a vistas
-    private lateinit var tokenManager: TokenManager // Manejador de token y datos de usuario
+    private lateinit var binding: ActivityHomeUserBinding
+    private lateinit var appBarConfiguration: AppBarConfiguration
+    private lateinit var tokenManager: TokenManager
 
-    override fun onCreate(savedInstanceState: Bundle?) { // Métodoo de ciclo de vida: se llama al crear la Activity
-        super.onCreate(savedInstanceState) // Llamamos a la implementación base
-        binding = ActivityHomeBinding.inflate(layoutInflater) // Inflamos el layout a través de ViewBinding
-        setContentView(binding.root) // Establecemos la vista raíz del binding como contenido de la Activity
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        binding = ActivityHomeUserBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        tokenManager = TokenManager(this)
 
-        tokenManager = TokenManager(this) // Inicializamos el TokenManager con el contexto de la Activity
-        binding.tvWelcome.text = "Bienvenido ${tokenManager.getUserName()}" // Mostramos saludo con el nombre del usuario
+        // 1. Set the Toolbar as the support action bar
+        setSupportActionBar(binding.toolbar)
 
-        // Cargamos inicialmente el fragmento de Productos
-        replaceFragment(ProductsFragment()) // Reemplazamos el contenedor por el fragmento de productos
+        // 2. Find NavController
+        val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment_activity_home_user) as NavHostFragment
+        val navController = navHostFragment.navController
 
-        binding.bottomNav.setOnItemSelectedListener { item -> // Listener para navegación inferior
-            when (item.itemId) { // Decidimos qué fragment mostrar según el ítem
-                R.id.nav_profile -> replaceFragment(ProfileFragment()) // Ir al perfil
-                R.id.nav_products -> replaceFragment(ProductsFragment()) // Ir a productos
-                R.id.nav_add -> replaceFragment(AddProductFragment()) // Ir a agregar producto
-            }
-            true // Devolvemos true para indicar que el evento fue manejado
-        }
+        // 3. Setup AppBarConfiguration for the drawer
+        appBarConfiguration = AppBarConfiguration(
+            setOf(R.id.nav_user_products), // Top-level destinations that don't show a back arrow
+            binding.drawerLayout
+        )
+
+        // 4. Connect the ActionBar with the NavController
+        setupActionBarWithNavController(navController, appBarConfiguration)
+
+        // 5. Connect the navigation views with the NavController
+        binding.navView.setupWithNavController(navController)
+        binding.navDrawerView.setupWithNavController(navController)
+
+        // 6. Set the listener for the drawer items
+        binding.navDrawerView.setNavigationItemSelectedListener(this)
+
+        // 7. Update header with user info
+        updateNavHeader()
     }
 
-    private fun replaceFragment(fragment: Fragment) { // Función auxiliar para reemplazar el fragment actual
-        supportFragmentManager.beginTransaction() // Iniciamos una transacción de fragmentos
-            .replace(binding.fragmentContainer.id, fragment) // Reemplazamos el contenedor con el fragmento dado
-            .commit() // Confirmamos la transacción
+    private fun updateNavHeader() {
+        val headerView = binding.navDrawerView.getHeaderView(0)
+        val userNameTextView = headerView.findViewById<TextView>(R.id.nav_header_user_name)
+        val userEmailTextView = headerView.findViewById<TextView>(R.id.nav_header_user_email)
+
+        userNameTextView.text = tokenManager.getUserName()
+        userEmailTextView.text = tokenManager.getUserEmail()
+    }
+
+    override fun onSupportNavigateUp(): Boolean {
+        val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment_activity_home_user) as NavHostFragment
+        val navController = navHostFragment.navController
+        return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
+    }
+
+    override fun onNavigationItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.nav_user_profile -> {
+                val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment_activity_home_user) as NavHostFragment
+                val navController = navHostFragment.navController
+                navController.navigate(R.id.nav_user_profile)
+            }
+            R.id.nav_logout -> {
+                tokenManager.clear()
+                val intent = Intent(this, MainActivity::class.java)
+                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                startActivity(intent)
+                finish()
+            }
+        }
+        binding.drawerLayout.closeDrawer(GravityCompat.START)
+        return true
+    }
+
+    override fun onBackPressed() {
+        if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            binding.drawerLayout.closeDrawer(GravityCompat.START)
+        } else {
+            super.onBackPressed()
+        }
     }
 }

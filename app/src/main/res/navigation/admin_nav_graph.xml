@@ -6,13 +6,13 @@
     app:startDestination="@id/nav_products">
 
     <!-- Products Fragment (List of products) -->
-    <!-- This is the starting screen of the admin section -->
     <fragment
         android:id="@+id/nav_products"
-        android:name="com.miapp.xanostorekotlin.ui.fragments.ProductsFragment"
-        android:label="Productos"
-        tools:layout="@layout/fragment_products">
-        <!-- Action to navigate from the product list to the "Add Product" screen -->
+        android:name="com.miapp.xanostorekotlin.ui.admin.AdminProductsFragment"
+        android:label="Gestión de Productos"
+        tools:layout="@layout/fragment_admin_products">
+        
+        <!-- Action to navigate to the Add Product screen -->
         <action
             android:id="@+id/action_productsFragment_to_addProductFragment"
             app:destination="@id/nav_add_product"
@@ -20,23 +20,43 @@
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left"
             app:popExitAnim="@anim/slide_out_right" />
+
+        <!-- Action to navigate to the Edit Product screen -->
+        <action
+            android:id="@+id/action_productsFragment_to_editProductFragment"
+            app:destination="@id/nav_edit_product"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
     </fragment>
 
-    <!-- Users Fragment (List of users) -->
+    <!-- Users Fragment -->
     <fragment
         android:id="@+id/nav_users"
         android:name="com.miapp.xanostorekotlin.ui.fragments.UsersFragment"
         android:label="Usuarios"
         tools:layout="@layout/fragment_users" />
 
-    <!-- Add Product Fragment -->
+    <!-- Add Product Fragment (for creating new products) -->
     <fragment
         android:id="@+id/nav_add_product"
-        android:name="com.miapp.xanostorekotlin.ui.fragments.AddProductFragment"
+        android:name="com.miapp.xanostorekotlin.ui.admin.AddProductFragment"
         android:label="Añadir Producto"
         tools:layout="@layout/fragment_add_product" />
 
-    <!-- Profile Fragment (From the side drawer) -->
+    <!-- Edit Product Fragment (for modifying existing products) -->
+    <fragment
+        android:id="@+id/nav_edit_product"
+        android:name="com.miapp.xanostorekotlin.ui.admin.EditProductFragment"
+        android:label="Editar Producto"
+        tools:layout="@layout/fragment_edit_product">
+        <argument
+            android:name="productId"
+            app:argType="integer" />
+    </fragment>
+
+    <!-- Profile Fragment -->
     <fragment
         android:id="@+id/nav_profile"
         android:name="com.miapp.xanostorekotlin.ui.fragments.ProfileFragment"

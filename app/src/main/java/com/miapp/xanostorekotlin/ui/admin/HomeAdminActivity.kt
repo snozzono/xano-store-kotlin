@@ -15,9 +15,9 @@ import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.miapp.xanostorekotlin.R
-import com.miapp.xanostorekotlin.api.TokenManager
+import com.miapp.xanostorekotlin.api.auth.TokenManager
 import com.miapp.xanostorekotlin.databinding.ActivityHomeAdminBinding
-import com.miapp.xanostorekotlin.ui.MainActivity
+import com.miapp.xanostorekotlin.ui.auth.MainActivity
 
 class HomeAdminActivity : AppCompatActivity() {
 

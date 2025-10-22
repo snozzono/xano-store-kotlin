@@ -1,6 +1,8 @@
 plugins {
     alias(libs.plugins.android.application) // Plugin de aplicación Android (AGP)
     alias(libs.plugins.kotlin.android) // Plugin de Kotlin para Android
+    id("kotlin-parcelize")
+    alias(libs.plugins.androidx.navigation.safeargs.kotlin)
 }
 
 android { // Bloque principal de configuración Android
@@ -15,32 +17,35 @@ android { // Bloque principal de configuración Android
         versionName = "1.0" // Nombre de versión mostrado
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner" // Runner para tests instrumentados
-        // Configuración de endpoints Xano (reemplaza los valores por los tuyos)
-        buildConfigField("String", "XANO_STORE_BASE", "\"https://x8ki-letl-twmt.n7.xano.io/api:3EYdZ3Ae/\"") // Base URL Store (Xano)
-        buildConfigField("String", "XANO_AUTH_BASE", "\"https://x8ki-letl-twmt.n7.xano.io/api:R4CkUNlW/\"") // Base URL Auth (Xano)
-        buildConfigField("int", "XANO_TOKEN_TTL_SEC", "86400") // TTL de token simulado
     }
 
     buildTypes { // Tipos de build (debug/release)
         release { // Configuración para versión release
-            isMinifyEnabled = false // No minificar para facilitar depuración
+            isMinifyEnabled = true // No minificar para facilitar depuración
             proguardFiles( // Archivos de reglas Proguard/R8
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
         }
     }
-    compileOptions { // Opciones de compatibilidad Java
-        sourceCompatibility = JavaVersion.VERSION_11 // Compilar con Java 11
-        targetCompatibility = JavaVersion.VERSION_11 // Target Java 11
-    }
-    kotlinOptions { // Opciones del compilador Kotlin
-        jvmTarget = "11" // Bytecode objetivo Java 11
-    }
     buildFeatures { // Activamos features del módulo
         viewBinding = true // Generación de clases de binding por layout
+        dataBinding = true // Generación de clases de binding por layout
         buildConfig = true // Generación de BuildConfig con campos custom
     }
+    
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+    kotlinOptions {
+        jvmTarget = "17"
+    }
+
+}
+
+kotlin {
+    jvmToolchain(17)
 }
 
 dependencies { // Dependencias del módulo
@@ -65,12 +70,14 @@ dependencies { // Dependencias del módulo
     implementation(libs.okhttp) // Cliente HTTP subyacente
     implementation(libs.okhttp.logging) // Interceptor de logging para depuración
 
-    // Corutinas
+    // Corrutinas
     implementation(libs.kotlinx.coroutines.android) // Soporte de corrutinas en Android
 
     // Imágenes
     implementation(libs.coil)
     implementation(libs.androidx.activity)
+    implementation(libs.androidx.navigation.fragment.ktx)
+    implementation(libs.androidx.navigation.ui.ktx)
 
     testImplementation(libs.junit) // Unit testing con JUnit4
     androidTestImplementation(libs.androidx.junit) // Testing instrumentado (JUnit ext)

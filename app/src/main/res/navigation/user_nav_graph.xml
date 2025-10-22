@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/user_nav_graph"
+    app:startDestination="@id/nav_user_products">
+
+    <!-- User Home Fragment (Product Listing) -->
+    <fragment
+        android:id="@+id/nav_user_products"
+        android:name="com.miapp.xanostorekotlin.ui.user.UserHomeFragment"
+        android:label="Xano Store"
+        tools:layout="@layout/fragment_user_home" >
+        <action
+            android:id="@+id/action_home_to_product_detail"
+            app:destination="@id/nav_product_detail"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+    </fragment>
+
+    <!-- Product Detail Fragment -->
+    <fragment
+        android:id="@+id/nav_product_detail"
+        android:name="com.miapp.xanostorekotlin.ui.product.ProductDetailFragment"
+        android:label="Detalle del Producto"
+        tools:layout="@layout/fragment_product_detail">
+        <argument
+            android:name="productId"
+            app:argType="integer" />
+    </fragment>
+    
+    <!-- Profile Fragment -->
+    <fragment
+        android:id="@+id/nav_user_profile"
+        android:name="com.miapp.xanostorekotlin.ui.fragments.ProfileFragment"
+        android:label="Mi Perfil"
+        tools:layout="@layout/fragment_profile" />
+
+</navigation>

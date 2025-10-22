@@ -6,9 +6,9 @@ import android.view.LayoutInflater // Import para inflar layouts XML
 import android.view.View // Import de la clase View
 import android.view.ViewGroup // Import para referencia al contenedor padre
 import androidx.fragment.app.Fragment // Import de la clase base Fragment
-import com.miapp.xanostorekotlin.api.TokenManager // Import de nuestro gestor de tokens/usuario
+import com.miapp.xanostorekotlin.api.auth.TokenManager // Import de nuestro gestor de tokens/usuario
 import com.miapp.xanostorekotlin.databinding.FragmentProfileBinding // Import del ViewBinding generado para fragment_profile.xml
-import com.miapp.xanostorekotlin.ui.MainActivity // Import de MainActivity para navegar al login tras logout
+import com.miapp.xanostorekotlin.ui.auth.MainActivity // Import de MainActivity para navegar al login tras logout
 
 /**
  * ProfileFragment
